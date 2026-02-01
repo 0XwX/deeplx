@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+/* 基础主题变量 - 使用 CSS 变量间接引用，支持运行时主题切换 */
+@theme inline {
+  --color-background: var(--theme-background);
+  --color-foreground: var(--theme-foreground);
+  --color-card: var(--theme-card);
+  --color-card-foreground: var(--theme-card-foreground);
+  --color-popover: var(--theme-popover);
+  --color-popover-foreground: var(--theme-popover-foreground);
+  --color-primary: var(--theme-primary);
+  --color-primary-foreground: var(--theme-primary-foreground);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-foreground: var(--theme-secondary-foreground);
+  --color-muted: var(--theme-muted);
+  --color-muted-foreground: var(--theme-muted-foreground);
+  --color-accent: var(--theme-accent);
+  --color-accent-foreground: var(--theme-accent-foreground);
+  --color-destructive: var(--theme-destructive);
+  --color-destructive-foreground: var(--theme-destructive-foreground);
+  --color-border: var(--theme-border);
+  --color-input: var(--theme-input);
+  --color-ring: var(--theme-ring);
+  --radius: 0.625rem;
+  --animate-border-beam: border-beam calc(var(--duration) * 1s) infinite linear;
+}
+
+/* 浅色模式 (默认) */
+:root {
+  color-scheme: light dark;
+  --theme-background: oklch(0.985 0 0);
+  --theme-foreground: oklch(0.145 0 0);
+  --theme-card: oklch(1 0 0);
+  --theme-card-foreground: oklch(0.145 0 0);
+  --theme-popover: oklch(1 0 0);
+  --theme-popover-foreground: oklch(0.145 0 0);
+  --theme-primary: oklch(0.205 0 0);
+  --theme-primary-foreground: oklch(0.985 0 0);
+  --theme-secondary: oklch(0.925 0 0);
+  --theme-secondary-foreground: oklch(0.205 0 0);
+  --theme-muted: oklch(0.925 0 0);
+  --theme-muted-foreground: oklch(0.45 0 0);
+  --theme-accent: oklch(0.925 0 0);
+  --theme-accent-foreground: oklch(0.205 0 0);
+  --theme-destructive: oklch(0.577 0.245 27.325);
+  --theme-destructive-foreground: oklch(0.985 0 0);
+  --theme-border: oklch(0.875 0 0);
+  --theme-input: oklch(0.875 0 0);
+  --theme-ring: oklch(0.708 0 0);
+}
+
+/* 深色模式 */
+.dark {
+  --theme-background: oklch(0.145 0 0);
+  --theme-foreground: oklch(0.985 0 0);
+  --theme-card: oklch(0.145 0 0);
+  --theme-card-foreground: oklch(0.985 0 0);
+  --theme-popover: oklch(0.145 0 0);
+  --theme-popover-foreground: oklch(0.985 0 0);
+  --theme-primary: oklch(0.922 0 0);
+  --theme-primary-foreground: oklch(0.205 0 0);
+  --theme-secondary: oklch(0.269 0 0);
+  --theme-secondary-foreground: oklch(0.985 0 0);
+  --theme-muted: oklch(0.269 0 0);
+  --theme-muted-foreground: oklch(0.708 0 0);
+  --theme-accent: oklch(0.269 0 0);
+  --theme-accent-foreground: oklch(0.985 0 0);
+  --theme-destructive: oklch(0.704 0.191 22.216);
+  --theme-destructive-foreground: oklch(0.985 0 0);
+  --theme-border: oklch(1 0 0 / 10%);
+  --theme-input: oklch(1 0 0 / 15%);
+  --theme-ring: oklch(0.556 0 0);
+}
+
+/* BorderBeam 动画 */
+@keyframes border-beam {
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-background text-foreground;
+  }
+
+  body {
+    @apply relative min-h-screen;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* 背景网格 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      linear-gradient(to right, var(--theme-border) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--theme-border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+/* View Transition - 主题切换动画 */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(root) {
+    animation-duration: 0.7s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-new(root) {
+    mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="40" cy="0" r="18" fill="white" filter="url(%23blur)"/></svg>') top right / 0 no-repeat;
+    mask-origin: content-box;
+    animation: theme-scale 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  ::view-transition-old(root) {
+    animation: none;
+  }
+
+  @keyframes theme-scale {
+    to {
+      mask-size: 250vmax;
+    }
+  }
+}
+
+/* 减少动画模式 - 禁用主题切换动画 */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
