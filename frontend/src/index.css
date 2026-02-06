@@ -86,6 +86,11 @@
 
   html {
     @apply bg-background text-foreground;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  html::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
   }
 
   body {

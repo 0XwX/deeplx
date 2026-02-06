@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Settings, History, Sun, Moon, Zap, Shield, DollarSign, Code2, ArrowRight } from 'lucide-react'
+import { Settings, History, Sun, Moon, Zap, Shield, DollarSign, Code2, ArrowRight, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TranslateForm } from '@/components/TranslateForm'
 import { SettingsPanel } from '@/components/SettingsPanel'
@@ -27,6 +27,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null)
+  const [copiedApi, setCopiedApi] = useState<string | null>(null)
 
   const { settings, updateSettings } = useSettings()
   const { history, addHistory, clearHistory, removeHistoryItem } = useHistory()
@@ -84,13 +85,37 @@ function App() {
   const handleOpenHistory = useCallback(() => setShowHistory(true), [])
   const handleOpenSettings = useCallback(() => setShowSettings(true), [])
 
+  // Copy curl command handler
+  const handleCopyCurl = useCallback(async (apiType: string, curlCommand: string) => {
+    try {
+      await navigator.clipboard.writeText(curlCommand)
+      setCopiedApi(apiType)
+      setTimeout(() => setCopiedApi(null), 2000)
+    } catch (e) {
+      console.error('Failed to copy:', e)
+    }
+  }, [])
+
+  // Generate curl commands
+  const curlCommands = useMemo(() => ({
+    translate: `curl -X POST ${window.location.origin}/translate \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "Hello, World!", "source_lang": "auto", "target_lang": "ZH"}'`,
+    deepl: `curl -X POST ${window.location.origin}/api/deepl \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "Hello, World!", "source_lang": "auto", "target_lang": "ZH"}'`,
+    google: `curl -X POST ${window.location.origin}/api/google \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "Hello, World!", "source_lang": "auto", "target_lang": "ZH"}'`,
+  }), [])
+
   return (
-    <div className="min-h-screen">
+    <div>
       <GridDecoration />
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      {/* Header - Fixed */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="/logo.svg" alt="DeepLX" className="h-7 w-7 dark:invert" />
             <span className="text-xl font-bold">DeepLX</span>
@@ -149,23 +174,24 @@ function App() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-16 md:py-24 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-sm text-muted-foreground mb-6">
+      {/* Section 1: Hero + Features - Full Screen */}
+      <section className="h-screen flex flex-col justify-center px-4 pt-14">
+        {/* Hero */}
+        <div className="max-w-4xl mx-auto text-center mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-muted/50 text-sm text-muted-foreground mb-4">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
             {t('heroBadge')}
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
             {t('heroTitle')}
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
             {t('heroSubtitle')}
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-3">
             <a href="#translate">
               <Button size="lg" className="gap-2">
                 {t('startTranslating')}
@@ -179,37 +205,35 @@ function App() {
             </a>
           </div>
         </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="py-12 px-4">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Features */}
+        <div className="max-w-5xl mx-auto w-full grid grid-cols-2 lg:grid-cols-4 gap-3">
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="relative group rounded-xl border border-border bg-card p-6 hover:border-foreground/20 transition-colors overflow-hidden"
+              className="relative group rounded-xl border border-border bg-card p-4 hover:border-foreground/20 transition-colors overflow-hidden"
             >
               <BorderBeam size={120} duration={8} delay={BEAM_DELAYS[index]} />
               <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary mb-4">
-                  <feature.icon className="h-5 w-5" />
+                <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary mb-2">
+                  <feature.icon className="h-4 w-4" />
                 </div>
-                <h3 className="font-semibold mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+                <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
+                <p className="text-xs text-muted-foreground">{feature.description}</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Translate Section */}
-      <section id="translate" className="py-12 px-4 scroll-mt-20">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">
+      {/* Section 2: Translate - Full Screen */}
+      <section id="translate" className="min-h-screen flex items-center px-4 py-8">
+        <div className="max-w-5xl mx-auto w-full">
+          <div className="text-center mb-6">
+            <h2 className="text-xl md:text-2xl font-bold mb-1">
               {t('onlineTranslation')}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {t('enterTextHint')}
             </p>
           </div>
@@ -225,76 +249,136 @@ function App() {
         </div>
       </section>
 
-      {/* API Section */}
-      <section id="api" className="py-12 px-4 scroll-mt-20">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">
-              API {t('apiUsage')}
-            </h2>
-            <p className="text-muted-foreground">
-              {t('apiUsageDesc')}
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
-              <span className="px-2 py-0.5 text-xs font-medium rounded bg-green-500/10 text-green-600 dark:text-green-400">POST</span>
-              <code className="text-sm text-muted-foreground">/translate</code>
+      {/* Section 3: API + Footer - Full Screen */}
+      <section id="api" className="min-h-screen flex flex-col px-4 py-8">
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="max-w-4xl mx-auto w-full">
+            <div className="text-center mb-6">
+              <h2 className="text-xl md:text-2xl font-bold mb-1">
+                API {t('apiUsage')}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t('apiUsageDesc')}
+              </p>
             </div>
-            <pre className="p-4 text-sm overflow-x-auto">
-              <code className="text-foreground">{`curl -X POST ${window.location.origin}/translate \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "text": "Hello, World!",
-    "source_lang": "auto",
-    "target_lang": "ZH"
-  }'`}</code>
-            </pre>
-          </div>
-          <div className="mt-4 rounded-xl border border-border bg-card overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
-              <span className="text-xs font-medium text-muted-foreground">Response</span>
-            </div>
-            <pre className="p-4 text-sm overflow-x-auto">
-              <code className="text-foreground">{`{
+
+            <div className="grid gap-3">
+              {/* Main API - /translate */}
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 text-xs font-medium rounded bg-green-500/10 text-green-600 dark:text-green-400">POST</span>
+                    <code className="text-sm text-muted-foreground">/translate</code>
+                    <span className="text-xs text-muted-foreground hidden sm:inline">({locale === 'zh' ? '自动故障转移' : 'Auto Failover'})</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => handleCopyCurl('translate', curlCommands.translate)}
+                  >
+                    {copiedApi === 'translate' ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span className="ml-1 text-xs">{copiedApi === 'translate' ? t('copied') : t('copy')}</span>
+                  </Button>
+                </div>
+                <pre className="p-3 text-xs overflow-x-auto">
+                  <code className="text-foreground">{curlCommands.translate}</code>
+                </pre>
+              </div>
+
+              {/* DeepL API */}
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 text-xs font-medium rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">POST</span>
+                    <code className="text-sm text-muted-foreground">/api/deepl</code>
+                    <span className="text-xs text-muted-foreground">(DeepL)</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => handleCopyCurl('deepl', curlCommands.deepl)}
+                  >
+                    {copiedApi === 'deepl' ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span className="ml-1 text-xs">{copiedApi === 'deepl' ? t('copied') : t('copy')}</span>
+                  </Button>
+                </div>
+                <pre className="p-3 text-xs overflow-x-auto">
+                  <code className="text-foreground">{curlCommands.deepl}</code>
+                </pre>
+              </div>
+
+              {/* Google API */}
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 text-xs font-medium rounded bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">POST</span>
+                    <code className="text-sm text-muted-foreground">/api/google</code>
+                    <span className="text-xs text-muted-foreground">(Google)</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2"
+                    onClick={() => handleCopyCurl('google', curlCommands.google)}
+                  >
+                    {copiedApi === 'google' ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span className="ml-1 text-xs">{copiedApi === 'google' ? t('copied') : t('copy')}</span>
+                  </Button>
+                </div>
+                <pre className="p-3 text-xs overflow-x-auto">
+                  <code className="text-foreground">{curlCommands.google}</code>
+                </pre>
+              </div>
+
+              {/* Response Example */}
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-muted/30">
+                  <span className="text-xs font-medium text-muted-foreground">Response</span>
+                </div>
+                <pre className="p-3 text-xs overflow-x-auto">
+                  <code className="text-foreground">{`{
   "code": 200,
-  "data": "Hello, World!",
+  "data": "你好，世界！",
   "source_lang": "EN",
   "target_lang": "ZH",
   "provider": "deepl"
 }`}</code>
-            </pre>
+                </pre>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-background/80 backdrop-blur mt-12">
-        <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <img src="/logo.svg" alt="DeepLX" className="h-5 w-5 dark:invert opacity-60" />
-            <span>{t('poweredBy')}</span>
+        {/* Footer */}
+        <footer className="border-t border-border bg-background/80 backdrop-blur mt-8">
+          <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <img src="/logo.svg" alt="DeepLX" className="h-5 w-5 dark:invert opacity-60" />
+              <span>{t('poweredBy')}</span>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <a
+                href="https://github.com/0XwX/deeplx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                GitHub
+              </a>
+              <a
+                href="https://github.com/OwO-Network/DeepLX"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t('website')}
+              </a>
+            </div>
           </div>
-          <div className="flex items-center gap-4 text-sm">
-            <a
-              href="https://github.com/0XwX/deeplx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              GitHub
-            </a>
-            <a
-              href="https://github.com/OwO-Network/DeepLX"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t('website')}
-            </a>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </section>
 
       {/* Panels */}
       <SettingsPanel

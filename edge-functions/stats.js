@@ -1,9 +1,58 @@
 // GET /stats - Monitoring endpoint
 // Note: deeplx is a global KV binding injected by EdgeOne runtime
 
+import { HTTP_STATUS_UNAUTHORIZED } from '../src/deeplx/constants.js'
+
 const LOG_LIST_LIMIT = 256
 
-export async function onRequestGet() {
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+/**
+ * Validate API Token
+ * @param {Request} request - Request object
+ * @param {object} env - Environment variables object
+ * @returns {{ valid: boolean, error?: string }} Validation result
+ */
+function validateToken(request, env) {
+  const configuredToken = env?.TOKEN
+  if (!configuredToken) {
+    return { valid: true }
+  }
+
+  const url = new URL(request.url)
+  let providedToken = url.searchParams.get('token')
+
+  if (!providedToken) {
+    const authHeader = request.headers.get('Authorization')
+    providedToken = authHeader?.replace(/^Bearer\s+/i, '')
+  }
+
+  if (!providedToken || providedToken !== configuredToken) {
+    return { valid: false, error: 'Unauthorized: Invalid or missing token' }
+  }
+
+  return { valid: true }
+}
+
+export async function onRequestOptions() {
+  return new Response(null, { status: 204, headers: corsHeaders })
+}
+
+export async function onRequestGet({ request, env }) {
+  const authResult = validateToken(request, env)
+  if (!authResult.valid) {
+    return new Response(
+      JSON.stringify({ code: HTTP_STATUS_UNAUTHORIZED, data: authResult.error }),
+      {
+        status: HTTP_STATUS_UNAUTHORIZED,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      },
+    )
+  }
   const today = new Date().toISOString().split('T')[0]
 
   // Get provider health status
@@ -47,9 +96,6 @@ export async function onRequestGet() {
 
   return new Response(JSON.stringify(stats, null, 2), {
     status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-    },
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
   })
 }
