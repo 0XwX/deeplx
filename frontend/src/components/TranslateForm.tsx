@@ -12,6 +12,7 @@ interface TranslateFormProps {
   autoTranslate: boolean
   autoTranslateDelay: number
   onTranslated?: (text: string, result: string, sourceLang: string, targetLang: string) => void
+  onUnauthorized?: () => void
   initialText?: string
   initialSourceLang?: string
   initialTargetLang?: string
@@ -23,6 +24,7 @@ export function TranslateForm({
   autoTranslate,
   autoTranslateDelay,
   onTranslated,
+  onUnauthorized,
   initialText,
   initialSourceLang,
   initialTargetLang,
@@ -63,6 +65,7 @@ export function TranslateForm({
   } = useTranslate({
     autoTranslate,
     autoTranslateDelay,
+    onUnauthorized,
   })
 
   // Set initial values

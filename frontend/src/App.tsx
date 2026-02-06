@@ -217,6 +217,7 @@ function App() {
             autoTranslate={settings.autoTranslate}
             autoTranslateDelay={settings.autoTranslateDelay}
             onTranslated={handleTranslated}
+            onUnauthorized={handleOpenSettings}
             initialText={selectedHistory?.text}
             initialSourceLang={selectedHistory?.sourceLang}
             initialTargetLang={selectedHistory?.targetLang}
@@ -284,7 +285,7 @@ function App() {
               GitHub
             </a>
             <a
-              href="https://deeplx.owo.network"
+              href="https://github.com/OwO-Network/DeepLX"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-foreground transition-colors"

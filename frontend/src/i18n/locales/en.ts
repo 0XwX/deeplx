@@ -40,6 +40,7 @@ export const enTranslations: Translations = {
   invalidResponse: 'Invalid response from server',
   rateLimitError: 'Too many requests, please try again later',
   unknownError: 'Unknown error occurred',
+  unauthorizedError: 'Server requires Token authentication. Please configure your Token.',
 
   // Footer
   poweredBy: 'Powered by DeepLX',
@@ -82,5 +83,5 @@ export const enTranslations: Translations = {
   apiEndpointPlaceholder: 'Leave empty to use current domain',
 
   // Footer Additional
-  website: 'Website',
+  website: 'DeepLX',
 }

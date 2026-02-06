@@ -40,6 +40,7 @@ export interface Translations {
   invalidResponse: string
   rateLimitError: string
   unknownError: string
+  unauthorizedError: string
 
   // Footer
   poweredBy: string

@@ -40,6 +40,7 @@ export const zhTranslations: Translations = {
   invalidResponse: '服务器返回无效响应',
   rateLimitError: '请求过于频繁，请稍后再试',
   unknownError: '发生未知错误',
+  unauthorizedError: '服务器已启用 Token 认证，请设置 Token',
 
   // Footer
   poweredBy: '由 DeepLX 驱动',
@@ -82,5 +83,5 @@ export const zhTranslations: Translations = {
   apiEndpointPlaceholder: '留空使用当前域名',
 
   // Footer Additional
-  website: '官网',
+  website: 'DeepLX',
 }

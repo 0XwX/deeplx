@@ -1,15 +1,17 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { translate as apiTranslate, type TranslateResponse } from '@/lib/api'
 import { useI18n } from '@/i18n'
+import { toast } from 'sonner'
 
 interface UseTranslateOptions {
   autoTranslate?: boolean
   autoTranslateDelay?: number
   onTranslated?: (result: TranslateResponse) => void
+  onUnauthorized?: () => void
 }
 
 export function useTranslate(options: UseTranslateOptions = {}) {
-  const { autoTranslate = true, autoTranslateDelay = 500, onTranslated } = options
+  const { autoTranslate = true, autoTranslateDelay = 500, onTranslated, onUnauthorized } = options
   const { t } = useI18n()
 
   const [text, setText] = useState('')
@@ -39,6 +41,12 @@ export function useTranslate(options: UseTranslateOptions = {}) {
         setResult(response.data)
         setLastResponse(response)
         onTranslated?.(response)
+      } else if (response.code === 401) {
+        const errorMsg = t('unauthorizedError')
+        setError(errorMsg)
+        setResult('')
+        toast.error(errorMsg)
+        onUnauthorized?.()
       } else {
         setError(response.data || t('translationFailed'))
         setResult('')
@@ -49,7 +57,7 @@ export function useTranslate(options: UseTranslateOptions = {}) {
     } finally {
       setIsLoading(false)
     }
-  }, [text, sourceLang, targetLang, onTranslated, t])
+  }, [text, sourceLang, targetLang, onTranslated, onUnauthorized, t])
 
   // Auto translate with debounce
   useEffect(() => {
