@@ -198,11 +198,14 @@ export async function onRequestPost({ request, env }) {
 
     try {
       // Call provider (with timeout and retry)
+      const abortController = new AbortController()
       const providerResult = await withRetry(
         () =>
           withTimeout(
-            provider.translate(translateParams, { env: {} }),
+            provider.translate(translateParams, { env, signal: abortController.signal }),
             provider.timeout || REQUEST_TIMEOUT,
+            undefined,
+            () => abortController.abort(),
           ),
         { retries: MAX_RETRIES, delay: RETRY_DELAY, backoff: RETRY_BACKOFF },
       )

@@ -23,6 +23,7 @@ export function useTranslate(options: UseTranslateOptions = {}) {
   const [lastResponse, setLastResponse] = useState<TranslateResponse | null>(null)
 
   const autoTranslateTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const translate = useCallback(async () => {
     if (!text.trim()) {
@@ -35,7 +36,12 @@ export function useTranslate(options: UseTranslateOptions = {}) {
     setError(null)
 
     try {
-      const response = await apiTranslate(text, targetLang, sourceLang)
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+      const response = await apiTranslate(text, targetLang, sourceLang, controller.signal)
 
       if (response.code === 200) {
         setResult(response.data)
@@ -52,6 +58,9 @@ export function useTranslate(options: UseTranslateOptions = {}) {
         setResult('')
       }
     } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        return
+      }
       setError(e instanceof Error ? e.message : t('networkError'))
       setResult('')
     } finally {
@@ -79,6 +88,14 @@ export function useTranslate(options: UseTranslateOptions = {}) {
       }
     }
   }, [text, autoTranslate, autoTranslateDelay, translate])
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
 
   const swapLanguages = useCallback(() => {
     if (sourceLang === 'auto') return

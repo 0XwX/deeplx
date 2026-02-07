@@ -32,7 +32,7 @@ export class GoogleProvider extends BaseProvider {
   /**
    * Execute translation
    */
-  async translate(params, _context = {}) {
+  async translate(params, context = {}) {
     const { text, sourceLang = 'auto', targetLang } = params
 
     // Construct Google Translate internal API URL
@@ -53,6 +53,7 @@ export class GoogleProvider extends BaseProvider {
           'Accept-Language': 'en-US,en;q=0.9',
           Referer: 'https://translate.google.com/',
         },
+        signal: context.signal,
       })
 
       if (!res.ok) {

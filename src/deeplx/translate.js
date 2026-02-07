@@ -16,7 +16,7 @@ import {
 
 const REQUEST_ALTERNATIVES = 3
 
-const makeRequest = async (postData, dlSession) => {
+const makeRequest = async (postData, dlSession, signal) => {
   const headers = dlSession
     ? { ...COMMON_HEADERS, Cookie: `dl_session=${dlSession}` }
     : COMMON_HEADERS
@@ -24,6 +24,7 @@ const makeRequest = async (postData, dlSession) => {
     method: 'POST',
     body: formatPostString(postData),
     headers,
+    signal,
   })
 
   // Check 429 status code (IP temporarily blocked)
@@ -41,7 +42,7 @@ const makeRequest = async (postData, dlSession) => {
   return res.json()
 }
 
-export const translateByDeepLX = async (sourceLang, targetLang, text, dlSession) => {
+export const translateByDeepLX = async (sourceLang, targetLang, text, dlSession, signal) => {
   if (!text) {
     return { code: HTTP_STATUS_NOT_FOUND, message: 'No text to translate' }
   }
@@ -76,7 +77,7 @@ export const translateByDeepLX = async (sourceLang, targetLang, text, dlSession)
 
   let result
   try {
-    const response = await makeRequest(postData, dlSession)
+    const response = await makeRequest(postData, dlSession, signal)
     result = response.result
 
     if (!result?.texts?.length) {

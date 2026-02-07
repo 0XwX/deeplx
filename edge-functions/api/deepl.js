@@ -102,7 +102,7 @@ export async function onRequestPost({ request, env }) {
   try {
     const result = await provider.translate(
       { text, sourceLang: sourceLang || 'auto', targetLang },
-      { env: {} },
+      { env },
     )
 
     if (result.code === HTTP_STATUS_OK) {

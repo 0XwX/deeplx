@@ -44,6 +44,7 @@ export class DeepLProvider extends BaseProvider {
         targetLang,
         text,
         context.env?.DEEPL_SESSION, // Optional Pro session
+        context.signal,
       )
 
       if (result.code === HTTP_STATUS_OK) {

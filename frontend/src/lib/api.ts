@@ -60,7 +60,8 @@ export function saveSettings(settings: Partial<Settings>): void {
 export async function translate(
   text: string,
   targetLang: string,
-  sourceLang = 'auto'
+  sourceLang = 'auto',
+  signal?: AbortSignal
 ): Promise<TranslateResponse> {
   const settings = getSettings()
   const baseUrl = settings.apiEndpoint || window.location.origin
@@ -81,6 +82,7 @@ export async function translate(
       source_lang: sourceLang,
       target_lang: targetLang,
     }),
+    signal,
   })
 
   return response.json()
